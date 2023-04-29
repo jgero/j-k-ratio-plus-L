@@ -24,21 +24,22 @@
           src = ./.;
           cargoLock.lockFile = ./Cargo.lock;
         };
-        # dockerImage = pkgs.dockerTools.buildLayeredImage {
-        #   name = "j-k-ratio-plus-L";
-        #   contents = [ pkgs.glibc pkgs.gcc ];
-        #   config = { Cmd = [ "${myRustBuild}/bin/j-k-ratio-plus-L" ]; };
-        # };
-      in {
+        dockerImage = pkgs.dockerTools.buildLayeredImage {
+          name = "j-k-ratio-plus-L";
+          config = { Cmd = [ "${myRustBuild}/bin/j-k-ratio-plus-L" ]; };
+        };
+      in
+      {
         packages = {
           rustPackage = myRustBuild;
-          # docker = dockerImage;
+          docker = dockerImage;
         };
         defaultPackage = myRustBuild;
         devShell = pkgs.mkShell {
           packages = with pkgs; [
-            lld
             cargo
+            kotlin
+            jd-cli
           ];
           buildInputs =
             [ (rustVersion.override { extensions = [ "rust-src" ]; }) ];
