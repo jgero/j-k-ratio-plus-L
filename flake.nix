@@ -24,15 +24,15 @@
           src = ./.;
           cargoLock.lockFile = ./Cargo.lock;
         };
-        dockerImage = pkgs.dockerTools.buildLayeredImage {
+        containerImage = pkgs.dockerTools.buildLayeredImage {
           name = "j-k-ratio-plus-L";
-          config = { Cmd = [ "${myRustBuild}/bin/j-k-ratio-plus-L" ]; };
+          config = { Cmd = [ "${myRustBuild}/bin/j-k-ratio-plus-L" "--production" ]; };
         };
       in
       {
         packages = {
           rustPackage = myRustBuild;
-          docker = dockerImage;
+          container = containerImage;
         };
         defaultPackage = myRustBuild;
         devShell = pkgs.mkShell {
