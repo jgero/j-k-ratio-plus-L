@@ -12,9 +12,15 @@ struct KotlinSrc {
 }
 
 #[derive(Deserialize, Serialize)]
+struct CompressionRatio {
+    chars: f32,
+    lines: f32,
+}
+
+#[derive(Deserialize, Serialize)]
 struct JavaResponse {
     src: String,
-    compression_ratio: f32,
+    compression_ratio: CompressionRatio,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -30,7 +36,10 @@ async fn main() {
         .map(|src: KotlinSrc| match compile_file(&src.src) {
             Ok(result) => warp::reply::json(&JavaResponse {
                 src: result.clone(),
-                compression_ratio: get_compression_ratio(&src.src, &result),
+                compression_ratio: CompressionRatio {
+                    chars: char_compression_ratio(&result, &src.src),
+                    lines: line_compression_ratio(&result, &src.src),
+                },
             }),
             Err(err) => warp::reply::json(&ErrorResponse { error: err }),
         });
@@ -44,7 +53,11 @@ async fn main() {
     warp::serve(compile).run(socket_addr).await;
 }
 
-fn get_compression_ratio(val1: &String, val2: &String) -> f32 {
+fn line_compression_ratio(val1: &String, val2: &String) -> f32 {
+    val1.lines().count() as f32 / val2.lines().count() as f32
+}
+
+fn char_compression_ratio(val1: &String, val2: &String) -> f32 {
     val1.chars().filter(|c| !c.is_whitespace()).count() as f32
         / val2.chars().filter(|c| !c.is_whitespace()).count() as f32
 }
