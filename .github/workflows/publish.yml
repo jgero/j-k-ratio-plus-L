@@ -19,4 +19,4 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - run: docker push ghcr.io/jgero/j-k-ratio-plus-L:latest
+      - run: docker push ghcr.io/jgero/j-k-ratio-plus-uppercase-l
