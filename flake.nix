@@ -25,7 +25,7 @@
           cargoLock.lockFile = ./Cargo.lock;
         };
         containerImage = pkgs.dockerTools.buildLayeredImage {
-          name = "ghcr.io/jgero/j-k-ratio-plus-L";
+          name = "ghcr.io/jgero/j-k-ratio-plus-uppercase-l";
           tag = "latest";
           contents = with pkgs; [
             kotlin
