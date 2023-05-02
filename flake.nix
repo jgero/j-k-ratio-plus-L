@@ -26,6 +26,12 @@
         };
         containerImage = pkgs.dockerTools.buildLayeredImage {
           name = "j-k-ratio-plus-L";
+          contents = with pkgs; [
+            kotlin
+            coreutils
+            jd-cli
+          ];
+          maxLayers = 5;
           config = { Cmd = [ "${myRustBuild}/bin/j-k-ratio-plus-L" "--production" ]; };
         };
       in

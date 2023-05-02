@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::fs;
 use std::io::Write;
 use std::{env, fs::File, process::Command};
 use warp::{body, Filter};
@@ -10,19 +11,28 @@ struct KotlinSrc {
     src: String,
 }
 
+#[derive(Deserialize, Serialize)]
+struct JavaResponse {
+    src: String,
+    compression_ratio: f32,
+}
+
+#[derive(Deserialize, Serialize)]
+struct ErrorResponse {
+    error: String,
+}
+
 #[tokio::main]
 async fn main() {
     let compile = warp::path("compile")
         .and(warp::post())
         .and(body::json())
-        .map(|src: KotlinSrc| {
-            format!(
-                "{}",
-                match compile_file(src.src) {
-                    Ok(_) => "success".to_string(),
-                    Err(err) => err,
-                }
-            )
+        .map(|src: KotlinSrc| match compile_file(&src.src) {
+            Ok(result) => warp::reply::json(&JavaResponse {
+                src: result.clone(),
+                compression_ratio: get_compression_ratio(&src.src, &result),
+            }),
+            Err(err) => warp::reply::json(&ErrorResponse { error: err }),
         });
 
     let socket_addr = if env::args().any(|arg| arg == "--production") {
@@ -34,8 +44,20 @@ async fn main() {
     warp::serve(compile).run(socket_addr).await;
 }
 
-fn compile_file(kotlin_src: String) -> Result<String, String> {
+fn get_compression_ratio(val1: &String, val2: &String) -> f32 {
+    val1.chars().filter(|c| !c.is_whitespace()).count() as f32
+        / val2.chars().filter(|c| !c.is_whitespace()).count() as f32
+}
+
+fn compile_file(kotlin_src: &String) -> Result<String, String> {
     let temp_dir = env::temp_dir();
+    if !temp_dir.exists() {
+        match fs::create_dir(temp_dir.clone()) {
+            Ok(_) => println!("temp dir does not exist, created it"),
+            Err(err) => println!("temp dir was missting and creating it failed: {}", err),
+        };
+    }
+
     let src_file_path = temp_dir.join("in.kt");
     let mut src_file = File::create(src_file_path.clone()).map_err(|err| err.to_string())?;
     write!(src_file, "{}", kotlin_src).map_err(|err| err.to_string())?;
@@ -46,9 +68,21 @@ fn compile_file(kotlin_src: String) -> Result<String, String> {
         .output()
         .map_err(|err| err.to_string())?;
     let stderr = std::str::from_utf8(out.stderr.as_slice()).map_err(|err| err.to_string())?;
-    if stderr.is_empty() {
-        Ok("compield successfully".to_string())
-    } else {
-        Err(stderr.to_string())
+    if !stderr.is_empty() {
+        return Err(stderr.to_string());
     }
+
+    let class_file = temp_dir.join("InKt.class");
+    let out = Command::new("jd-cli")
+        .arg("-g")
+        .arg("OFF")
+        .arg(class_file.as_os_str())
+        .output()
+        .map_err(|err| err.to_string())?;
+    let stdout = std::str::from_utf8(out.stdout.as_slice()).map_err(|err| err.to_string())?;
+    let stderr = std::str::from_utf8(out.stderr.as_slice()).map_err(|err| err.to_string())?;
+    if !stderr.is_empty() {
+        return Err(stderr.to_string());
+    }
+    Ok(stdout.to_string())
 }
