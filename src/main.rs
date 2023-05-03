@@ -63,6 +63,7 @@ fn char_compression_ratio(val1: &String, val2: &String) -> f32 {
 }
 
 fn compile_file(kotlin_src: &String) -> Result<String, String> {
+    // setup temp dir
     let temp_dir = env::temp_dir();
     if !temp_dir.exists() {
         match fs::create_dir(temp_dir.clone()) {
@@ -71,6 +72,7 @@ fn compile_file(kotlin_src: &String) -> Result<String, String> {
         };
     }
 
+    // write kotlin file and compile
     let src_file_path = temp_dir.join("in.kt");
     let mut src_file = File::create(src_file_path.clone()).map_err(|err| err.to_string())?;
     write!(src_file, "{}", kotlin_src).map_err(|err| err.to_string())?;
@@ -80,11 +82,12 @@ fn compile_file(kotlin_src: &String) -> Result<String, String> {
         .arg(temp_dir.as_os_str())
         .output()
         .map_err(|err| err.to_string())?;
-    let stderr = std::str::from_utf8(out.stderr.as_slice()).map_err(|err| err.to_string())?;
-    if !stderr.is_empty() {
+    if !out.status.success() {
+        let stderr = std::str::from_utf8(out.stderr.as_slice()).map_err(|err| err.to_string())?;
         return Err(stderr.to_string());
     }
 
+    // decompile class file to java
     let class_file = temp_dir.join("InKt.class");
     let out = Command::new("jd-cli")
         .arg("-g")
@@ -92,10 +95,10 @@ fn compile_file(kotlin_src: &String) -> Result<String, String> {
         .arg(class_file.as_os_str())
         .output()
         .map_err(|err| err.to_string())?;
-    let stdout = std::str::from_utf8(out.stdout.as_slice()).map_err(|err| err.to_string())?;
-    let stderr = std::str::from_utf8(out.stderr.as_slice()).map_err(|err| err.to_string())?;
-    if !stderr.is_empty() {
+    if !out.status.success() {
+        let stderr = std::str::from_utf8(out.stderr.as_slice()).map_err(|err| err.to_string())?;
         return Err(stderr.to_string());
     }
+    let stdout = std::str::from_utf8(out.stdout.as_slice()).map_err(|err| err.to_string())?;
     Ok(stdout.to_string())
 }
