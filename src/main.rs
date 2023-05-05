@@ -50,7 +50,7 @@ async fn main() {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)
     };
 
-    warp::serve(compile).run(socket_addr).await;
+    warp::serve(compile.or(warp::fs::dir("static"))).run(socket_addr).await;
 }
 
 fn line_compression_ratio(val1: &String, val2: &String) -> f32 {

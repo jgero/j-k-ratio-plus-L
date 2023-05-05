@@ -1,0 +1,7 @@
+{
+  "name": "j-k-ratio-plus-l",
+  "version": "1.0.0",
+  "dependencies": {
+    "monaco-editor": "^0.38.0"
+  }
+}

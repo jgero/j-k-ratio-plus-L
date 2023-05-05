@@ -47,6 +47,7 @@
             cargo
             kotlin
             jd-cli
+            nodejs
           ];
           buildInputs =
             [ (rustVersion.override { extensions = [ "rust-src" ]; }) ];
