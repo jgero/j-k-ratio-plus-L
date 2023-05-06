@@ -19,6 +19,10 @@
         .center {
             flex: 1;
         }
+        .loading {
+            display: none;
+            color: white;
+        }
     </style>
 	<body>
         <div class="left">
@@ -26,6 +30,7 @@
         </div>
         <div class="center">
             <button type="button" onclick="onButton()">compile</button>
+            <div class="loading">loading...</div>
         </div>
         <div class="right">
 		    <div class="container" id="java"></div>
@@ -51,6 +56,8 @@
 			});
 
             function onButton() {
+                document.getElementsByClassName("loading")[0].style.display =
+                    "unset";
                 fetch("compile", {
                     method: "POST",
                     headers: new Headers([["Content-Type", "application/json"]]),
@@ -58,6 +65,11 @@
                 }).then((response) => response.json())
                     .then((body) => {
                         window.javaEditor.setValue(body.src);
+                        document.getElementsByClassName("loading")[0].style.display =
+                    "none";
+                    }).catch((error) => {
+                        document.getElementsByClassName("loading")[0].style.display =
+                    "none";
                     });
             }
 		</script>
