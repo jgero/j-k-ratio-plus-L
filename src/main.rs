@@ -49,8 +49,14 @@ async fn main() {
     } else {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)
     };
+    let static_dir = env::args()
+        .find(|arg| arg.contains("--static-path="))
+        .map(|arg| arg.replace("--static-path=", ""))
+        .unwrap_or_else(|| "static".to_string());
 
-    warp::serve(compile.or(warp::fs::dir("static"))).run(socket_addr).await;
+    warp::serve(compile.or(warp::fs::dir(static_dir)))
+        .run(socket_addr)
+        .await;
 }
 
 fn line_compression_ratio(val1: &String, val2: &String) -> f32 {
