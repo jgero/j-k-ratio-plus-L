@@ -8,11 +8,12 @@
         body {
             display: flex;
             flex-direction: row;
+            background: black;
         }
-        #container {
+        .container {
             height: 80vh;
         }
-        .left, #java {
+        .left, .right {
             flex: 5;
         }
         .center {
@@ -21,13 +22,13 @@
     </style>
 	<body>
         <div class="left">
-		    <div id="container"></div>
+		    <div class="container" id="kotlin"></div>
         </div>
         <div class="center">
             <button type="button" onclick="onButton()">compile</button>
         </div>
-        <div id="java">
-            
+        <div class="right">
+		    <div class="container" id="java"></div>
         </div>
 		<!-- OR ANY OTHER AMD LOADER HERE INSTEAD OF loader.js -->
 		<script src="./static/monaco-editor/min/vs/loader.js"></script>
@@ -35,10 +36,17 @@
 			require.config({ paths: { vs: './static/monaco-editor/min/vs' } });
 
 			require(['vs/editor/editor.main'], function () {
-				window.editor = monaco.editor.create(document.getElementById('container'), {
+				window.kotlinEditor =
+                    monaco.editor.create(document.getElementById('kotlin'), {
                     value: ['fun main() {', '\tprint("Hello world!")', '}'].join('\n'),
 					language: 'kotlin',
                     theme: "vs-dark"
+				});
+				window.javaEditor =
+                    monaco.editor.create(document.getElementById('java'), {
+					language: 'java',
+                    theme: "vs-dark",
+                    readOnly: true
 				});
 			});
 
@@ -46,10 +54,10 @@
                 fetch("compile", {
                     method: "POST",
                     headers: new Headers([["Content-Type", "application/json"]]),
-                    body: JSON.stringify({ src: window.editor.getValue() })
+                    body: JSON.stringify({ src: window.kotlinEditor.getValue() })
                 }).then((response) => response.json())
                     .then((body) => {
-                        document.getElementById("java").textContent = body.src;
+                        window.javaEditor.setValue(body.src);
                     });
             }
 		</script>
