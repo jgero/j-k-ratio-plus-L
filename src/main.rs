@@ -54,9 +54,14 @@ async fn main() {
         .map(|arg| arg.replace("--static-path=", ""))
         .unwrap_or_else(|| "static".to_string());
 
-    warp::serve(compile.or(warp::fs::dir(static_dir)))
-        .run(socket_addr)
-        .await;
+    warp::serve(
+        warp::path::end()
+            .and(warp::fs::file(static_dir.clone() + "/index.html"))
+            .or(warp::path("static").and(warp::fs::dir(static_dir.clone() + "/node_modules")))
+            .or(compile),
+    )
+    .run(socket_addr)
+    .await;
 }
 
 fn line_compression_ratio(val1: &String, val2: &String) -> f32 {
