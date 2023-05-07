@@ -26,8 +26,12 @@
         };
         staticHtml = pkgs.buildNpmPackage {
           name = "monaco-editor-frontend";
-          src = ./static;
-          npmDepsHash = "sha256-Fi01btSLEjBrBdAGCcXYD9/zDJOuVnevSVYm1iqffVs=";
+          src = ./.;
+          npmDepsHash = "sha256-fy2xd35+0Z+WxDvGrOoaSfPubEBLdSZM5qQv672zeuU=";
+          installPhase = ''
+            mkdir -p $out
+            mv build $out
+          '';
         };
         containerImage = pkgs.dockerTools.buildLayeredImage {
           name = "ghcr.io/jgero/j-k-ratio-plus-uppercase-l";
@@ -37,8 +41,8 @@
             coreutils
             jd-cli
           ];
-          maxLayers = 5;
-          config = { Cmd = [ "${myRustBuild}/bin/j-k-ratio-plus-L" "--production" "--static-path=${staticHtml}/lib/node_modules/j-k-ratio-plus-l" ]; };
+          maxLayers = 10;
+          config = { Cmd = [ "${myRustBuild}/bin/j-k-ratio-plus-L" "--production" "--static-path=${staticHtml}/build" ]; };
         };
       in
       {

@@ -52,12 +52,12 @@ async fn main() {
     let static_dir = env::args()
         .find(|arg| arg.contains("--static-path="))
         .map(|arg| arg.replace("--static-path=", ""))
-        .unwrap_or_else(|| "static".to_string());
+        .unwrap_or_else(|| "build".to_string());
 
     warp::serve(
         warp::path::end()
             .and(warp::fs::file(static_dir.clone() + "/index.html"))
-            .or(warp::path("static").and(warp::fs::dir(static_dir.clone() + "/node_modules")))
+            .or(warp::path("_app").and(warp::fs::dir(static_dir.clone() + "/_app")))
             .or(compile),
     )
     .run(socket_addr)
