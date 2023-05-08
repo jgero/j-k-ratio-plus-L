@@ -1,4 +1,5 @@
 <script>
+    import { dev } from "$app/environment";
     import Editor from "./Editor.svelte";
 
     const defaultSrc = ["fun hello() {", '\tprint("hello world")', "}"].join(
@@ -8,8 +9,10 @@
     let kotlinSrc = defaultSrc;
     let javaResult = "";
 
+    const apiUrl = dev ? "http://localhost:8080/compile" : "compile";
+
     async function compile() {
-        let response = await self.fetch("compile", {
+        let response = await self.fetch(apiUrl, {
             method: "POST",
             headers: new Headers([["Content-Type", "application/json"]]),
             body: JSON.stringify({ src: kotlinSrc }),
