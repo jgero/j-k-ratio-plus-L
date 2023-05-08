@@ -99,16 +99,20 @@ fn compile_file(kotlin_src: &String) -> Result<String, String> {
     }
 
     // decompile class file to java
-    let class_file = temp_dir.join("InKt.class");
     let out = Command::new("jd-cli")
         .arg("-g")
         .arg("OFF")
-        .arg(class_file.as_os_str())
+        .arg("-oc")
+        .arg(temp_dir)
         .output()
         .map_err(|err| err.to_string())?;
     if !out.status.success() {
-        let stderr = std::str::from_utf8(out.stderr.as_slice()).map_err(|err| err.to_string())?;
-        return Err(stderr.to_string());
+        let stderr = std::str::from_utf8(out.stdout.as_slice()).map_err(|err| err.to_string())?;
+        return Err(format!(
+            "decompilation failed(status {}): {}",
+            out.status,
+            stderr.to_string()
+        ));
     }
     let stdout = std::str::from_utf8(out.stdout.as_slice()).map_err(|err| err.to_string())?;
     Ok(stdout.to_string())
