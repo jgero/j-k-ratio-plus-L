@@ -27,7 +27,7 @@
 
 <div class="content">
     <div class="editor-box">
-        <Editor language="kotlin" value={kotlinSrc} />
+        <Editor language="kotlin" bind:value={kotlinSrc} />
     </div>
     <div class="button-box"><button on:click={compile}>compile</button></div>
     <div class="editor-box">
