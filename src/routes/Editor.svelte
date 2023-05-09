@@ -1,6 +1,7 @@
 <script lang="ts">
     import type monaco from "monaco-editor";
     import { onMount } from "svelte";
+    import { fade } from "svelte/transition";
     import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 
     let divEl: HTMLDivElement;
@@ -34,7 +35,7 @@
             value: value,
             language: language,
             theme: "vs-dark",
-            readOnly: readonly
+            readOnly: readonly,
         });
         editor.onDidChangeModelContent((_) => {
             value = editor.getValue();
@@ -45,10 +46,13 @@
     });
 </script>
 
-<div bind:this={divEl} class="monaco" />
+<div transition:fade bind:this={divEl} class="monaco" />
 
 <style>
     .monaco {
         height: 80vh;
+        position: absolute;
+        width: 100%;
+        height: 100%;
     }
 </style>

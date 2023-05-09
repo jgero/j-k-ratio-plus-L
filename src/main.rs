@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::Write;
 use std::{env, fs::File, process::Command};
+use uuid::Uuid;
 use warp::{body, Filter};
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
@@ -75,10 +76,10 @@ fn char_compression_ratio(val1: &String, val2: &String) -> f32 {
 
 fn compile_file(kotlin_src: &String) -> Result<String, String> {
     // setup temp dir
-    let temp_dir = env::temp_dir();
+    let temp_dir = env::temp_dir().join(Uuid::new_v4().to_string());
     if !temp_dir.exists() {
-        match fs::create_dir(temp_dir.clone()) {
-            Ok(_) => println!("temp dir does not exist, created it"),
+        match fs::create_dir_all(temp_dir.clone()) {
+            Ok(_) => println!("created dir {}", temp_dir.clone().to_str().get_or_insert("unknown")),
             Err(err) => println!("temp dir was missting and creating it failed: {}", err),
         };
     }
