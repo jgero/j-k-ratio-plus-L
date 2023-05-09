@@ -50,7 +50,6 @@
 
 <style>
     .monaco {
-        height: 80vh;
         position: absolute;
         width: 100%;
         height: 100%;
