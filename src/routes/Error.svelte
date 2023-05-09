@@ -8,7 +8,9 @@
     div {
         color: white;
         position: absolute;
-        width: 100%;
-        height: 100%;
+        max-width: 70%;
+        border: 1px solid #70072a;
+        padding: 1em;
+        border-radius: 0.5em;
     }
 </style>

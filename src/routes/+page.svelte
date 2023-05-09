@@ -2,11 +2,13 @@
     import { dev } from "$app/environment";
     import Editor from "./Editor.svelte";
     import Loading from "./Loading.svelte";
-    import Error from "./Error.svelte";
+    import ErrorComponent from "./Error.svelte";
 
-    const defaultSrc = ["fun hello() {", '\tprint("hello world")', "}"].join(
-        "\n"
-    );
+    const defaultSrc = [
+        "fun hello() {",
+        '\tprint("hello aphrodite")',
+        "}",
+    ].join("\n");
 
     let kotlinSrc = defaultSrc;
     let compilePromise: Promise<any> = Promise.reject({
@@ -28,7 +30,12 @@
 
         if (response.ok) {
             const resJson = await response.json();
+            if (resJson.error) {
+                throw new Error(resJson.error);
+            }
             return resJson.src;
+        } else {
+            throw new Error("received error from API");
         }
     }
 </script>
@@ -56,7 +63,7 @@
                     readonly={true}
                 />
             {:catch error}
-                <Error message={error.error} />
+                <ErrorComponent message={error} />
             {/await}
         </div>
     </div>
@@ -73,7 +80,7 @@
     .content {
         display: flex;
         flex-direction: row;
-        background: black;
+        background: #1e1e1e;
         height: 100%;
     }
     .content-wrapper {

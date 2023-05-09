@@ -37,5 +37,6 @@
         position: absolute;
         width: 400px;
         height: 400px;
+        opacity: 0.5;
     }
 </style>
