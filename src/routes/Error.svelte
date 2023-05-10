@@ -12,5 +12,6 @@
         border: 1px solid #70072a;
         padding: 1em;
         border-radius: 0.5em;
+        font-family: "JetBrains Mono";
     }
 </style>

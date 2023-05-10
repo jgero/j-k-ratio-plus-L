@@ -9,6 +9,7 @@
         bottom: 0;
         display: flex;
         justify-content: center;
+        font-family: "JetBrains Mono";
     }
     a {
         color: white;

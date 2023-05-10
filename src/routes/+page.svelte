@@ -77,6 +77,12 @@
     :global(*) {
         box-sizing: border-box;
     }
+    :global(:root) {
+        @font-face {
+            font-family: JetBrains Mono;
+            src: url("JetBrainsMono-Regular.ttf");
+        }
+    }
     .content {
         display: flex;
         flex-direction: row;
@@ -101,6 +107,7 @@
     h1 {
         color: white;
         text-align: center;
+        font-family: "JetBrains Mono";
     }
     .button-box {
         flex: 1;
