@@ -3,6 +3,7 @@
     import Editor from "./Editor.svelte";
     import Loading from "./Loading.svelte";
     import ErrorComponent from "./Error.svelte";
+    import IconBanner from "./IconBanner.svelte";
 
     const defaultSrc = [
         "fun hello() {",
@@ -66,6 +67,7 @@
         </div>
     </div>
 </div>
+<IconBanner />
 
 <style>
     :global(body, html) {
