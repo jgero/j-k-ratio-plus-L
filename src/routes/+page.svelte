@@ -11,9 +11,7 @@
     ].join("\n");
 
     let kotlinSrc = defaultSrc;
-    let compilePromise: Promise<any> = Promise.reject({
-        error: "nothing to compile yet",
-    });
+    let compilePromise: Promise<any> = Promise.reject("nothing to compile yet");
 
     const apiUrl = dev ? "http://localhost:8080/compile" : "compile";
 
