@@ -1,5 +1,7 @@
 <div>
-    <a href="https://icons8.com/" target="_blank">All icons on this page are from icons8</a>
+    <a href="https://icons8.com/" target="_blank"
+        >Java and Kotlin icons are from icons8</a
+    >
 </div>
 
 <style>

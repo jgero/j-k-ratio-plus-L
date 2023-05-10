@@ -4,6 +4,7 @@
     import Loading from "./Loading.svelte";
     import ErrorComponent from "./Error.svelte";
     import IconBanner from "./IconBanner.svelte";
+    import Button from "./Button.svelte";
 
     const defaultSrc = [
         "fun hello() {",
@@ -40,31 +41,26 @@
 </script>
 
 <div class="content">
-    <div class="content-wrapper">
-        <h1>Kotlin</h1>
-        <div class="editor-box">
-            <Editor language="kotlin" bind:value={kotlinSrc} />
-        </div>
+    <h1>Kotlin</h1>
+    <div />
+    <h1>Java</h1>
+    <div class="editor-box">
+        <Editor language="kotlin" bind:value={kotlinSrc} />
     </div>
-    <div class="button-box">
-        <button on:click={onCompile}>compile</button>
-    </div>
-    <div class="content-wrapper">
-        <h1>Java</h1>
-        <div class="editor-box">
-            {#await compilePromise}
-                <Loading />
-            {:then javaResult}
-                <Editor
-                    language="java"
-                    value={javaResult}
-                    reactive={true}
-                    readonly={true}
-                />
-            {:catch error}
-                <ErrorComponent message={error} />
-            {/await}
-        </div>
+    <Button on:click={onCompile} />
+    <div class="editor-box">
+        {#await compilePromise}
+            <Loading />
+        {:then javaResult}
+            <Editor
+                language="java"
+                value={javaResult}
+                reactive={true}
+                readonly={true}
+            />
+        {:catch error}
+            <ErrorComponent message={error} />
+        {/await}
     </div>
 </div>
 <IconBanner />
@@ -84,32 +80,28 @@
         }
     }
     .content {
-        display: flex;
-        flex-direction: row;
+        display: grid;
+        grid-template-columns: 4fr 1fr 4fr;
+        grid-template-rows: 1fr 6fr;
         background: #1e1e1e;
         height: 100%;
     }
-    .content-wrapper {
-        height: 100%;
-        flex: 5;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
     .editor-box {
         position: relative;
-        width: 40vw;
-        height: 80vh;
         display: flex;
         align-items: center;
         justify-content: center;
     }
     h1 {
         color: white;
-        text-align: center;
         font-family: "JetBrains Mono";
+        margin: auto;
+        font-size: 3rem;
     }
-    .button-box {
-        flex: 1;
+    h1:first-of-type {
+        text-shadow: 0 0 20px lime;
+    }
+    h1:nth-of-type(2) {
+        text-shadow: 0 0 20px red;
     }
 </style>
