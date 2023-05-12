@@ -20,7 +20,7 @@ struct CompressionRatio {
 
 #[derive(Deserialize, Serialize)]
 struct JavaResponse {
-    src: String,
+    src: Vec<String>,
     compression_ratio: CompressionRatio,
 }
 
@@ -65,21 +65,28 @@ async fn main() {
     .await;
 }
 
-fn line_compression_ratio(val1: &String, val2: &String) -> f32 {
-    val1.lines().count() as f32 / val2.lines().count() as f32
+fn line_compression_ratio(val1: &Vec<String>, val2: &String) -> f32 {
+    let lines = val1.iter().map(|s| s.lines().count()).fold(0, |a, b| a + b);
+    lines as f32 / val2.lines().count() as f32
 }
 
-fn char_compression_ratio(val1: &String, val2: &String) -> f32 {
-    val1.chars().filter(|c| !c.is_whitespace()).count() as f32
-        / val2.chars().filter(|c| !c.is_whitespace()).count() as f32
+fn char_compression_ratio(val1: &Vec<String>, val2: &String) -> f32 {
+    let chars = val1
+        .iter()
+        .map(|s| s.chars().filter(|c| !c.is_whitespace()).count())
+        .fold(0, |a, b| a + b);
+    chars as f32 / val2.chars().filter(|c| !c.is_whitespace()).count() as f32
 }
 
-fn compile_file(kotlin_src: &String) -> Result<String, String> {
+fn compile_file(kotlin_src: &String) -> Result<Vec<String>, String> {
     // setup temp dir
     let temp_dir = env::temp_dir().join(Uuid::new_v4().to_string());
     if !temp_dir.exists() {
         match fs::create_dir_all(temp_dir.clone()) {
-            Ok(_) => println!("created dir {}", temp_dir.clone().to_str().get_or_insert("unknown")),
+            Ok(_) => println!(
+                "created dir {}",
+                temp_dir.clone().to_str().get_or_insert("unknown")
+            ),
             Err(err) => println!("temp dir was missting and creating it failed: {}", err),
         };
     }
@@ -99,12 +106,19 @@ fn compile_file(kotlin_src: &String) -> Result<String, String> {
         return Err(stderr.to_string());
     }
 
+    let out_dir = temp_dir.join("out");
+    if let Err(err) = fs::create_dir_all(out_dir.clone()) {
+        return Err(format!(
+            "temp dir was missting and creating it failed: {}",
+            err
+        ));
+    }
+
     // decompile class file to java
     let out = Command::new("jd-cli")
-        .arg("-g")
-        .arg("OFF")
-        .arg("-oc")
-        .arg(temp_dir)
+        .arg("-od")
+        .arg(out_dir.as_os_str())
+        .arg(temp_dir.clone())
         .output()
         .map_err(|err| err.to_string())?;
     if !out.status.success() {
@@ -115,6 +129,17 @@ fn compile_file(kotlin_src: &String) -> Result<String, String> {
             stderr.to_string()
         ));
     }
-    let stdout = std::str::from_utf8(out.stdout.as_slice()).map_err(|err| err.to_string())?;
-    Ok(stdout.to_string())
+    let result = match fs::read_dir(out_dir) {
+        Ok(read_dir) => {
+            Ok(read_dir.filter(|el| el.as_ref().unwrap().file_type().unwrap().is_file() && el.as_ref().unwrap().path().extension().unwrap() == "java")
+                .map(|file| fs::read_to_string(file.unwrap().path()).unwrap())
+                .collect())
+        },
+        Err(err) => Err(err.to_string()) 
+    };
+
+    if let Err(err) = fs::remove_dir_all(temp_dir) {
+        return Err(err.to_string());
+    }
+    return result;
 }

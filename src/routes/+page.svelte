@@ -33,7 +33,7 @@
             if (resJson.error) {
                 throw new Error(resJson.error);
             }
-            return resJson.src;
+            return resJson.src.join("\n");
         } else {
             throw new Error("received error from API");
         }
