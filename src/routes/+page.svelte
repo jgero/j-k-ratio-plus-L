@@ -5,6 +5,7 @@
     import ErrorComponent from "./Error.svelte";
     import IconBanner from "./IconBanner.svelte";
     import Button from "./Button.svelte";
+    import TabbedResult from "./TabbedResult.svelte";
 
     const defaultSrc = [
         "fun hello() {",
@@ -13,7 +14,9 @@
     ].join("\n");
 
     let kotlinSrc = defaultSrc;
-    let compilePromise: Promise<any> = Promise.reject("nothing to compile yet");
+    let compilePromise: Promise<string[]> = Promise.reject(
+        "nothing to compile yet"
+    );
 
     const apiUrl = dev ? "http://localhost:8080/compile" : "compile";
 
@@ -33,7 +36,7 @@
             if (resJson.error) {
                 throw new Error(resJson.error);
             }
-            return resJson.src.join("\n");
+            return resJson.src;
         } else {
             throw new Error("received error from API");
         }
@@ -52,12 +55,7 @@
         {#await compilePromise}
             <Loading />
         {:then javaResult}
-            <Editor
-                language="java"
-                value={javaResult}
-                reactive={true}
-                readonly={true}
-            />
+            <TabbedResult {javaResult} />
         {:catch error}
             <ErrorComponent message={error} />
         {/await}
