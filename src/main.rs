@@ -55,14 +55,19 @@ async fn main() {
         .map(|arg| arg.replace("--static-path=", ""))
         .unwrap_or_else(|| "build".to_string());
 
-    warp::serve(
+    let (_addr, future) = warp::serve(
         warp::path::end()
             .and(warp::fs::file(static_dir.clone() + "/index.html"))
             .or(warp::path("_app").and(warp::fs::dir(static_dir.clone() + "/_app")))
             .or(compile),
     )
-    .run(socket_addr)
-    .await;
+    .bind_with_graceful_shutdown(socket_addr, async move {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("failed to listen to shutdown signal");
+    });
+    future.await;
+    println!("shutting down server");
 }
 
 fn line_compression_ratio(val1: &Vec<String>, val2: &String) -> f32 {
@@ -130,12 +135,14 @@ fn compile_file(kotlin_src: &String) -> Result<Vec<String>, String> {
         ));
     }
     let result = match fs::read_dir(out_dir) {
-        Ok(read_dir) => {
-            Ok(read_dir.filter(|el| el.as_ref().unwrap().file_type().unwrap().is_file() && el.as_ref().unwrap().path().extension().unwrap() == "java")
-                .map(|file| fs::read_to_string(file.unwrap().path()).unwrap())
-                .collect())
-        },
-        Err(err) => Err(err.to_string()) 
+        Ok(read_dir) => Ok(read_dir
+            .filter(|el| {
+                el.as_ref().unwrap().file_type().unwrap().is_file()
+                    && el.as_ref().unwrap().path().extension().unwrap() == "java"
+            })
+            .map(|file| fs::read_to_string(file.unwrap().path()).unwrap())
+            .collect()),
+        Err(err) => Err(err.to_string()),
     };
 
     if let Err(err) = fs::remove_dir_all(temp_dir) {
