@@ -27,7 +27,7 @@
         staticHtml = pkgs.buildNpmPackage {
           name = "monaco-editor-frontend";
           src = ./.;
-          npmDepsHash = "sha256-fy2xd35+0Z+WxDvGrOoaSfPubEBLdSZM5qQv672zeuU=";
+          npmDepsHash = "sha256-d5BSZ2yOQhOuSTkvOuWxiscvXHJnXjC+52tYxiyDl1Y=";
           installPhase = ''
             mkdir -p $out
             mv build $out
