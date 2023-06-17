@@ -13,6 +13,7 @@ mod scoreboard;
 #[derive(Deserialize, Serialize)]
 struct KotlinSrc {
     src: String,
+    user: String
 }
 
 #[derive(Deserialize, Serialize, PartialEq, Clone)]
@@ -46,7 +47,7 @@ async fn main() {
                 let ratio = CompressionRatio { chars: char_compression_ratio(&result, &src.src),
                      lines : line_compression_ratio(&result, &src.src)
                 };
-                move_me.new_entry("user".to_string(), ratio.clone());
+                move_me.new_entry(src.user, ratio.clone());
                 warp::reply::json(&JavaResponse {
                     src: result.clone(),
                     compression_ratio: ratio

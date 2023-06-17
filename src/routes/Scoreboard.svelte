@@ -1,6 +1,7 @@
 <script lang="ts">
     import { dev } from "$app/environment";
     import { onDestroy, onMount } from "svelte";
+    export let username: string;
     const apiUrl = dev ? "http://localhost:8080/scoreboard" : "scoreboard";
     let scoreboard: any[] = [];
     let intervalHandle: any;
@@ -23,7 +24,7 @@
             if (resJson.error) {
                 throw new Error(resJson.error);
             }
-            scoreboard = resJson;
+            scoreboard = (resJson as any[]).slice(0, 10);
         } else {
             throw new Error("received error from API");
         }
@@ -31,15 +32,27 @@
 </script>
 
 <aside>
-    <ol>
-        {#each scoreboard as entry}
-            <li>
-                <span>{entry.user}</span>
-                <span>{entry.ratio.chars}</span>
-                <span>{entry.ratio.lines}</span>
-            </li>
-        {/each}
-    </ol>
+    <table>
+        <thead>
+            <tr>
+                <td>RANK</td>
+                <td>ALIAS</td>
+                <td>CHAR RATIO</td>
+                <td>LINE RATIO</td>
+            </tr>
+        </thead>
+        <tbody>
+            {#each scoreboard as entry, index}
+                <tr>
+                    <td>{index}</td>
+                    <td>{entry.user}</td>
+                    <td>{entry.ratio.chars}</td>
+                    <td>{entry.ratio.lines}</td>
+                </tr>
+            {/each}
+        </tbody>
+    </table>
+    <span>{username}</span>
     <span><b>SCOREBOARD</b></span>
 </aside>
 
@@ -68,10 +81,15 @@
         transform: translateY(0);
     }
     aside > span {
-        margin-block-start: 1rem;
+        margin-block-start: 0.7rem;
     }
-    ol {
-        padding: 0;
-        margin: 0;
+    table + span {
+        opacity: 0.5;
+    }
+    table {
+        width: 100%;
+    }
+    td {
+        text-align: center;
     }
 </style>
