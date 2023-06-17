@@ -38,11 +38,24 @@ impl Scoreboard {
     }
     pub fn new_entry(&self, user: String, ratio: CompressionRatio) {
         let mut locked_board = self.board.lock().unwrap();
-        locked_board.push(Entry { user, ratio });
+        if locked_board
+            .iter()
+            .find(|entry| entry.user == user)
+            .is_none()
+        {
+            locked_board.push(Entry { user, ratio });
+        } else {
+            for entry in locked_board.iter_mut() {
+                if entry.user == user && ratio.lines > entry.ratio.lines {
+                    entry.ratio = ratio;
+                    break;
+                }
+            }
+        }
         locked_board.sort();
         locked_board.reverse();
     }
-    pub fn get(&self) -> Vec<Entry>{
+    pub fn get(&self) -> Vec<Entry> {
         let locked_board = self.board.lock().unwrap();
         return locked_board.clone();
     }
