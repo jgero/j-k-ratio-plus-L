@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::Write;
-use std::rc::Rc;
 use std::sync::Arc;
 use std::{env, fs::File, process::Command};
 use uuid::Uuid;
@@ -35,11 +34,6 @@ struct ErrorResponse {
     error: String,
 }
 
-#[derive(Serialize)]
-struct ScoreboardResponse {
-    board: String
-}
-
 #[tokio::main]
 async fn main() {
     let scoreboard = Arc::new(crate::scoreboard::Scoreboard::new());
@@ -62,7 +56,7 @@ async fn main() {
         });
     let move_me_too = scoreboard.clone();
     let scoreboard_path =
-        warp::path("scoreboard").map(move || warp::reply::json(&ScoreboardResponse{board: move_me_too.to_string()}));
+        warp::path("scoreboard").map(move || warp::reply::json(&move_me_too.get()));
 
     let socket_addr = if env::args().any(|arg| arg == "--production") {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 80)
