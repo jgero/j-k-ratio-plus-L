@@ -44,7 +44,7 @@
         <tbody>
             {#each scoreboard as entry, index}
                 <tr>
-                    <td>{index}</td>
+                    <td>{index + 1}</td>
                     <td>{entry.user}</td>
                     <td>{entry.ratio.chars}</td>
                     <td>{entry.ratio.lines}</td>
