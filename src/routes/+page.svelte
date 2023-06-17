@@ -7,6 +7,8 @@
     import Button from "./Button.svelte";
     import TabbedResult from "./TabbedResult.svelte";
     import Scoreboard from "./Scoreboard.svelte";
+    import { onMount } from "svelte";
+    import { generateUsername } from "unique-username-generator";
 
     const defaultSrc = [
         "fun hello() {",
@@ -18,8 +20,13 @@
     let compilePromise: Promise<string[]> = Promise.reject(
         "nothing to compile yet"
     );
+    let username = "??";
 
     const apiUrl = dev ? "http://localhost:8080/compile" : "compile";
+
+    onMount(() => {
+        username = generateUsername("-");
+    });
 
     function onCompile() {
         compilePromise = compile();
@@ -29,7 +36,7 @@
         let response = await self.fetch(apiUrl, {
             method: "POST",
             headers: new Headers([["Content-Type", "application/json"]]),
-            body: JSON.stringify({ src: kotlinSrc }),
+            body: JSON.stringify({ src: kotlinSrc, user: username }),
         });
 
         if (response.ok) {
@@ -44,7 +51,7 @@
     }
 </script>
 
-<Scoreboard />
+<Scoreboard {username} />
 <div class="content">
     <h1>Kotlin</h1>
     <div />
