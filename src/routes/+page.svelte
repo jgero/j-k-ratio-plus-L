@@ -6,6 +6,7 @@
     import IconBanner from "./IconBanner.svelte";
     import Button from "./Button.svelte";
     import TabbedResult from "./TabbedResult.svelte";
+    import Scoreboard from "./Scoreboard.svelte";
 
     const defaultSrc = [
         "fun hello() {",
@@ -43,6 +44,7 @@
     }
 </script>
 
+<Scoreboard />
 <div class="content">
     <h1>Kotlin</h1>
     <div />

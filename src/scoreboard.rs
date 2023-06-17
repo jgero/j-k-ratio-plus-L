@@ -1,16 +1,14 @@
 use std::{
-    fmt::Display,
     format,
     sync::{Arc, Mutex},
-    write,
 };
 
 use serde::Serialize;
 
 use crate::CompressionRatio;
 
-#[derive(PartialEq, Eq)]
-struct Entry {
+#[derive(PartialEq, Eq, Clone, Serialize)]
+pub struct Entry {
     user: String,
     ratio: CompressionRatio,
 }
@@ -44,6 +42,10 @@ impl Scoreboard {
         locked_board.sort();
         locked_board.reverse();
     }
+    pub fn get(&self) -> Vec<Entry>{
+        let locked_board = self.board.lock().unwrap();
+        return locked_board.clone();
+    }
 }
 
 impl ToString for Scoreboard {
@@ -61,4 +63,3 @@ impl ToString for Scoreboard {
             .join("\n")
     }
 }
-
