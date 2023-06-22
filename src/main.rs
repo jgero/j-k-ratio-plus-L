@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::Write;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::{env, fs::File, process::Command};
 use uuid::Uuid;
 use warp::{body, Filter};
@@ -13,7 +13,7 @@ mod scoreboard;
 #[derive(Deserialize, Serialize)]
 struct KotlinSrc {
     src: String,
-    user: String
+    user: String,
 }
 
 #[derive(Deserialize, Serialize, PartialEq, Clone)]
@@ -37,27 +37,31 @@ struct ErrorResponse {
 
 #[tokio::main]
 async fn main() {
-    let scoreboard = Arc::new(crate::scoreboard::Scoreboard::new());
-    let move_me = scoreboard.clone();
+    let scoreboard = Arc::new(Mutex::new(crate::scoreboard::Scoreboard::new()));
+    let compile_endpoint_scoreboard = scoreboard.clone();
     let compile = warp::path("compile")
         .and(warp::post())
         .and(body::json())
         .map(move |src: KotlinSrc| match compile_file(&src.src) {
             Ok(result) => {
-                let ratio = CompressionRatio { chars: char_compression_ratio(&result, &src.src),
-                     lines : line_compression_ratio(&result, &src.src)
+                let ratio = CompressionRatio {
+                    chars: char_compression_ratio(&result, &src.src),
+                    lines: line_compression_ratio(&result, &src.src),
                 };
-                move_me.new_entry(src.user, ratio.clone());
+                {
+                    let mut locked = compile_endpoint_scoreboard.lock().unwrap();
+                    locked.new_entry(src.user, ratio.clone());
+                }
                 warp::reply::json(&JavaResponse {
                     src: result.clone(),
-                    compression_ratio: ratio
+                    compression_ratio: ratio,
                 })
             }
             Err(err) => warp::reply::json(&ErrorResponse { error: err }),
         });
-    let move_me_too = scoreboard.clone();
-    let scoreboard_path =
-        warp::path("scoreboard").map(move || warp::reply::json(&move_me_too.get()));
+    let scoreboard_endpoint_scoreboard = scoreboard.clone();
+    let scoreboard_path = warp::path("scoreboard")
+        .map(move || warp::reply::json(&scoreboard_endpoint_scoreboard.lock().unwrap().get()));
 
     let socket_addr = if env::args().any(|arg| arg == "--production") {
         SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 80)
@@ -74,8 +78,7 @@ async fn main() {
             .and(warp::fs::file(static_dir.clone() + "/index.html"))
             .or(warp::path("_app").and(warp::fs::dir(static_dir.clone() + "/_app")))
             .or(compile)
-            .or(scoreboard_path)
-            ,
+            .or(scoreboard_path),
     )
     .bind_with_graceful_shutdown(socket_addr, async move {
         tokio::signal::ctrl_c()

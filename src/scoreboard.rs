@@ -1,7 +1,4 @@
-use std::{
-    format,
-    sync::{Arc, Mutex},
-};
+use std::format;
 
 use serde::Serialize;
 
@@ -27,44 +24,35 @@ impl PartialOrd for Entry {
 
 #[derive(Clone)]
 pub struct Scoreboard {
-    board: Arc<Mutex<Vec<Entry>>>,
+    board: Vec<Entry>,
 }
 
 impl Scoreboard {
     pub fn new() -> Self {
-        Self {
-            board: Arc::new(Mutex::new(Vec::new())),
-        }
+        Self { board: Vec::new() }
     }
-    pub fn new_entry(&self, user: String, ratio: CompressionRatio) {
-        let mut locked_board = self.board.lock().unwrap();
-        if locked_board
-            .iter()
-            .find(|entry| entry.user == user)
-            .is_none()
-        {
-            locked_board.push(Entry { user, ratio });
+    pub fn new_entry(&mut self, user: String, ratio: CompressionRatio) {
+        if self.board.iter().find(|entry| entry.user == user).is_none() {
+            self.board.push(Entry { user, ratio });
         } else {
-            for entry in locked_board.iter_mut() {
+            for entry in self.board.iter_mut() {
                 if entry.user == user && ratio.lines > entry.ratio.lines {
                     entry.ratio = ratio;
                     break;
                 }
             }
         }
-        locked_board.sort();
-        locked_board.reverse();
+        self.board.sort();
+        self.board.reverse();
     }
     pub fn get(&self) -> Vec<Entry> {
-        let locked_board = self.board.lock().unwrap();
-        return locked_board.clone();
+        self.board.clone()
     }
 }
 
 impl ToString for Scoreboard {
     fn to_string(&self) -> String {
-        let locked_board = self.board.lock().unwrap();
-        locked_board
+        self.board
             .iter()
             .map(|entry| {
                 format!(
