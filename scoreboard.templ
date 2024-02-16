@@ -1,0 +1,9 @@
+package main
+
+templ scoreboard(entries map[string]string) {
+    <ol>
+       for k, v := range entries {
+           <li>{k} Has reached {v}</li>
+        }
+    </ol>
+}
