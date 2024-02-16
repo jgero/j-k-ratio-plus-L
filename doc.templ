@@ -1,5 +1,11 @@
 package main
 
+css editorBox() {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
 templ doc() {
 <!DOCTYPE html>
 <html lang="en">
@@ -7,11 +13,16 @@ templ doc() {
         <title>Hello world</title>
         <meta charset="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <script src="https://unpkg.com/htmx.org@2.0.0-alpha1/dist/htmx.min.js"></script>
-        <script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
+        <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js"></script>
+        <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/sse.js"></script>
+        <script src="https://unpkg.com/monaco-editor@0.46.0/min/vs/loader.js"></script>
     </head>
     <body>
       <div hx-ext="sse" sse-connect="/scoreboard" sse-swap="ScoreboardUpdate">placeholder</div>
+      <div class={ editorBox() }>
+          @editor("kotlin", "hello kotlin")
+          @editor("java", "hello java")
+      </div>
     </body>
 </html>
 }

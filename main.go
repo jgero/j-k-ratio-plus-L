@@ -27,17 +27,15 @@ func ScoreboardHandler(c echo.Context) error {
 	c.Response().Header().Set(echo.HeaderContentType, "text/event-stream")
 	c.Response().Header().Set(echo.HeaderCacheControl, "no-cache")
 	c.Response().Header().Set("Connection", "keep-alive")
-	// c.Response().Header().Set("Transfer-Encoding", "chunked")
 	for i := 1; i <= 10; i++ {
 		fmt.Fprintf(c.Response().Writer, "event: ScoreboardUpdate\ndata: <div>hello world #%d<div>\n\n", i)
 		c.Response().Flush()
 		time.Sleep(1 * time.Second)
 	}
-	return nil
-
-	// return Render(c, http.StatusOK, scoreboard(map[string]string {
-	// 	"john": "hello world",
-	// }))
+	select {
+		case <- c.Request().Context().Done():
+			return nil
+	}
 }
 
 func HomeHandler(c echo.Context) error {

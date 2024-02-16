@@ -1,0 +1,22 @@
+package main
+
+script startEditor(language string, defaultValue string) {
+  require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@0.46.0/min/vs' }});
+  require(['vs/editor/editor.main'], function() {
+    var editor = monaco.editor.create(document.getElementById('editor-' + language), {
+      value: defaultValue,
+      language: language,
+    });
+  });
+}
+
+css editorStyle() {
+    width: 40vw;
+    height: 80vh;
+}
+
+templ editor(language string, defaultValue string) {
+    <div id={"editor-" + language} class={ editorStyle() }>
+        @startEditor(language, defaultValue)
+    </div>
+}
