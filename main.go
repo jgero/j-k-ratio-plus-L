@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -20,14 +19,12 @@ func main() {
 }
 
 func CompileKotlin(c echo.Context) error {
-	kotlin, err := io.ReadAll(c.Request().Body)
+	javaFiles, err := compileKotlin(c.FormValue("code"))
 	if err != nil {
 		c.Response().WriteHeader(http.StatusBadRequest)
 		return err
 	}
-	javaFiles, err := compileKotlin(string(kotlin))
-	err = c.String(http.StatusOK, strings.Join(javaFiles, "\n\n"))
-	return err
+	return Render(c, http.StatusOK, editor("java", strings.Join(javaFiles, "\n\n"), ""))
 }
 
 // This custom Render replaces Echo's echo.Context.Render() with templ's templ.Component.Render().

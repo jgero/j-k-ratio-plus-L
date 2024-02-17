@@ -20,8 +20,12 @@ templ doc() {
     <body>
       <div hx-ext="sse" sse-connect="/scoreboard" sse-swap="ScoreboardUpdate">placeholder</div>
       <div class={ editorBox() }>
-          @editor("kotlin", "hello kotlin")
-          @editor("java", "hello java")
+        <form hx-post="/compile" hx-target="#out" id="kotlinForm">
+          @editor("kotlin", "hello kotlin", "kotlin-shadow")
+          <input id="kotlin-shadow" type="hidden" name="code" value=""/>
+          <button type="submit">Compile</button>
+        </form>
+        <div id="out"></div>
       </div>
     </body>
 </html>
