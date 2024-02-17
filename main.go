@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -12,8 +14,20 @@ import (
 func main() {
 	app := echo.New()
 	app.GET("/", HomeHandler)
+	app.POST("/compile", CompileKotlin)
 	app.GET("/scoreboard", ScoreboardHandler)
 	app.Logger.Fatal(app.Start(":4000"))
+}
+
+func CompileKotlin(c echo.Context) error {
+	kotlin, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		c.Response().WriteHeader(http.StatusBadRequest)
+		return err
+	}
+	javaFiles, err := compileKotlin(string(kotlin))
+	err = c.String(http.StatusOK, strings.Join(javaFiles, "\n\n"))
+	return err
 }
 
 // This custom Render replaces Echo's echo.Context.Render() with templ's templ.Component.Render().
@@ -33,8 +47,8 @@ func ScoreboardHandler(c echo.Context) error {
 		time.Sleep(1 * time.Second)
 	}
 	select {
-		case <- c.Request().Context().Done():
-			return nil
+	case <-c.Request().Context().Done():
+		return nil
 	}
 }
 
