@@ -15,12 +15,14 @@ func main() {
 	app.GET("/", HomeHandler)
 	app.POST("/compile", CompileKotlin)
 	app.GET("/scoreboard", ScoreboardHandler)
+	app.Static("css", "./css")
 	app.Logger.Fatal(app.Start(":4000"))
 }
 
 func CompileKotlin(c echo.Context) error {
 	javaFiles, err := compileKotlin(c.FormValue("code"))
 	if err != nil {
+		println(err.Error())
 		c.Response().WriteHeader(http.StatusBadRequest)
 		return err
 	}

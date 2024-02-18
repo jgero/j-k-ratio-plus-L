@@ -1,11 +1,5 @@
 package main
 
-css editorBox() {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-}
-
 templ doc() {
 <!DOCTYPE html>
 <html lang="en">
@@ -13,20 +7,26 @@ templ doc() {
         <title>Hello world</title>
         <meta charset="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <link rel="stylesheet" href="./css/style.css"/>
         <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js"></script>
         <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/sse.js"></script>
         <script src="https://unpkg.com/monaco-editor@0.46.0/min/vs/loader.js"></script>
     </head>
-    <body>
-      <div hx-ext="sse" sse-connect="/scoreboard" sse-swap="ScoreboardUpdate">placeholder</div>
-      <div class={ editorBox() }>
-        <form hx-post="/compile" hx-target="#out" id="kotlinForm">
-          @editor("kotlin", "hello kotlin", "kotlin-shadow")
+    <body class="h-screen flex p-6 gap-6 font-mono bg-emerald-950">
+        <form hx-post="/compile" hx-swap="outerHTML" hx-target="#editor-java" id="kotlinForm" class="flex flex-col flex-1 p-6 bg-[#1e1e1e] text-white rounded-lg gap-6">
+          <div class="block flex justify-between items-center">
+            <h2 class="text-2xl font-bold">Kotlin</h2>
+            <button type="submit" class="border-white border-solid border-4 font-bold rounded-md p-2 hover:bg-white hover:text-black transition-colors cursor-pointer">Compile</button>
+          </div>
+          @editor("kotlin", "// your Kotlin goes here", "kotlin-shadow")
           <input id="kotlin-shadow" type="hidden" name="code" value=""/>
-          <button type="submit">Compile</button>
         </form>
-        <div id="out"></div>
-      </div>
+          <div class="flex flex-col flex-1 p-6 bg-[#1e1e1e] text-white rounded-lg gap-6">
+            <h2 class="text-2xl font-bold">Java</h2>
+            <div id="editor-java" class="flex-1">
+                <div hx-ext="sse" sse-connect="/scoreboard" sse-swap="ScoreboardUpdate">placeholder</div>
+            </div>
+          </div>
     </body>
 </html>
 }

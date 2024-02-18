@@ -7,6 +7,8 @@ import (
 )
 
 const IN_FILE_NAME = "in.kt"
+const KOTLIN_BIN = "kotlinc"
+const JD_BIN = "jd-cli"
 
 func compileKotlin(kotlin string) (javaFiles []string, err error) {
 	dir, err := os.MkdirTemp("", "j-k-ratio-compile-work-d")
@@ -19,11 +21,11 @@ func compileKotlin(kotlin string) (javaFiles []string, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = exec.Command("kotlinc", kotlinFilePath, "-d", dir).Run()
+	err = exec.Command(KOTLIN_BIN, kotlinFilePath, "-d", dir).Run()
 	if err != nil {
 		return nil, err
 	}
-	err = exec.Command("jd-cli", "-od", dir, dir).Run()
+	err = exec.Command(JD_BIN, "-od", dir, dir).Run()
 	if err != nil {
 		return nil, err
 	}

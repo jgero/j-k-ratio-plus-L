@@ -34,15 +34,23 @@
     {
       formatter.${system} = treefmtEval.config.build.wrapper;
       checks.${system}.formatter = treefmtEval.config.build.check self;
-      packages.${system}.default = pkgs.buildGoModule {
+      packages.${system}.default = pkgs.buildGoModule rec {
         pname = "j-k-ratio-plus-L";
         version = "2.0";
         # vendorHash = nixpkgs.lib.fakeHash;
         vendorHash = "sha256-FeGap2zXQCIFG894mUOHMDVLR34B84qfXZEGAF4ayjw=";
         src = ./.;
-        nativeBuildInputs = [ templ-bin ];
+        nativeBuildInputs = [ templ-bin pkgs.tailwindcss pkgs.makeBinaryWrapper ];
         preBuild = ''
           templ generate hello.templ
+          mkdir -p css
+          tailwindcss -o css/style.css --minify
+          mkdir $out
+          cp -r ./css $out/css
+        '';
+        postInstall = ''
+          wrapProgram $out/bin/${pname} \
+            --prefix PATH : ${nixpkgs.lib.makeBinPath [ pkgs.kotlin pkgs.jd-cli ]}
         '';
       };
       # defaultPackage = myRustBuild;
@@ -54,6 +62,7 @@
           kotlin
           jd-cli
           nodejs
+          tailwindcss
         ];
       };
     };

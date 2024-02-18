@@ -7,6 +7,7 @@ script startEditor(language string, defaultValue string, syncElId string) {
       value: defaultValue,
       language: language,
       readOnly: syncElId == "",
+      theme: 'vs-dark',
     });
     if (syncElId != "") {
         editor.onDidChangeModelContent(function() {
@@ -16,13 +17,8 @@ script startEditor(language string, defaultValue string, syncElId string) {
   });
 }
 
-css editorStyle() {
-    width: 40vw;
-    height: 80vh;
-}
-
 templ editor(language string, defaultValue string, syncElId string) {
-    <div id={"editor-" + language} class={ editorStyle() }>
+    <div id={"editor-" + language} class="flex-1">
         @startEditor(language, defaultValue, syncElId)
     </div>
 }
