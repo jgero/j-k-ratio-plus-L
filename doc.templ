@@ -1,5 +1,9 @@
 package main
 
+const INITIAL_CODE = `fun main() {
+    println("Hello world!")
+}`
+
 templ doc() {
 <!DOCTYPE html>
 <html lang="en">
@@ -13,12 +17,18 @@ templ doc() {
         <script src="https://unpkg.com/monaco-editor@0.46.0/min/vs/loader.js"></script>
     </head>
     <body class="h-screen flex p-6 gap-6 font-mono bg-emerald-950">
-        <form hx-post="/compile" hx-swap="outerHTML" hx-target="#editor-java" id="kotlinForm" class="flex flex-col flex-1 p-6 bg-[#1e1e1e] text-white rounded-lg gap-6">
+        <form hx-post="/compile" hx-indicator=".loading-indicator" hx-swap="outerHTML" hx-target="#editor-java" id="kotlinForm" class="flex flex-col flex-1 p-6 bg-[#1e1e1e] text-white rounded-lg gap-6">
           <div class="block flex justify-between items-center">
             <h2 class="text-2xl font-bold">Kotlin</h2>
+            <span class="relative inline-flex">
             <button type="submit" class="border-white border-solid border-4 font-bold rounded-md p-2 hover:bg-white hover:text-black transition-colors cursor-pointer">Compile</button>
+            <span class="absolute flex h-3 w-3 top-0 right-0 -mt-1 -mr-1 loading-indicator htmx-indicator">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+            </span>
+            </span>
           </div>
-          @editor("kotlin", "// your Kotlin goes here", "kotlin-shadow")
+          @editor("kotlin", INITIAL_CODE, "kotlin-shadow")
           <input id="kotlin-shadow" type="hidden" name="code" value=""/>
         </form>
           <div class="flex flex-col flex-1 p-6 bg-[#1e1e1e] text-white rounded-lg gap-6">
