@@ -29,7 +29,7 @@ templ doc() {
             </span>
           </div>
           @editor("kotlin", INITIAL_CODE, "kotlin-shadow")
-          <input id="kotlin-shadow" type="hidden" name="code" value=""/>
+          <input id="kotlin-shadow" type="hidden" name="code" value={INITIAL_CODE}/>
         </form>
           <div class="flex flex-col flex-1 p-6 bg-[#1e1e1e] text-white rounded-lg gap-6">
             <h2 class="text-2xl font-bold">Java</h2>
