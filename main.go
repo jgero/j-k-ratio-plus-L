@@ -1,56 +1,23 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"net/http"
-	"strings"
-	"time"
-
-	"github.com/a-h/templ"
-	"github.com/labstack/echo/v4"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
-	app := echo.New()
-	app.GET("/", HomeHandler)
-	app.POST("/compile", CompileKotlin)
-	app.GET("/scoreboard", ScoreboardHandler)
-	app.Static("css", "./css")
-	app.Logger.Fatal(app.Start(":4000"))
-}
+	ctx, cancel := context.WithCancel(context.Background())
+	server := NewServer(ctx)
+	server.Start()
 
-func CompileKotlin(c echo.Context) error {
-	javaFiles, err := compileKotlin(c.FormValue("code"))
-	if err != nil {
-		println(err.Error())
-		c.Response().WriteHeader(http.StatusBadRequest)
-		return err
-	}
-	return Render(c, http.StatusOK, editor("java", strings.Join(javaFiles, "\n\n"), ""))
-}
-
-// This custom Render replaces Echo's echo.Context.Render() with templ's templ.Component.Render().
-func Render(ctx echo.Context, statusCode int, t templ.Component) error {
-	ctx.Response().Writer.WriteHeader(statusCode)
-	ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTML)
-	return t.Render(ctx.Request().Context(), ctx.Response().Writer)
-}
-
-func ScoreboardHandler(c echo.Context) error {
-	c.Response().Header().Set(echo.HeaderContentType, "text/event-stream")
-	c.Response().Header().Set(echo.HeaderCacheControl, "no-cache")
-	c.Response().Header().Set("Connection", "keep-alive")
-	for i := 1; i <= 10; i++ {
-		fmt.Fprintf(c.Response().Writer, "event: ScoreboardUpdate\ndata: <div>hello world #%d<div>\n\n", i)
-		c.Response().Flush()
-		time.Sleep(1 * time.Second)
-	}
-	select {
-	case <-c.Request().Context().Done():
-		return nil
-	}
-}
-
-func HomeHandler(c echo.Context) error {
-	return Render(c, http.StatusOK, doc())
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-sigs
+	fmt.Println("shutting down gracefully")
+	cancel()
+	fmt.Println("shutdown finished, goodbye")
+	os.Exit(0)
 }
