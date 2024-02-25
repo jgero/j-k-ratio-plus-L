@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -15,12 +16,14 @@ import (
 type Server struct {
 	ctx context.Context
 	app *echo.Echo
+	sb  Scoreboard
 }
 
 func NewServer(ctx context.Context) (server *Server) {
 	server = &Server{
 		app: echo.New(),
 		ctx: ctx,
+		sb:  NewScoreboard(),
 	}
 	server.app.GET("/", server.homeHandler)
 	server.app.POST("/compile", server.compileKotlinHandler)
@@ -53,21 +56,31 @@ func (server *Server) homeHandler(c echo.Context) error {
 }
 
 func (server *Server) compileKotlinHandler(c echo.Context) error {
-	javaFiles, err := compileKotlin(c.FormValue("code"))
+	kotlin := c.FormValue("code")
+	javaFiles, err := compileKotlin(kotlin)
 	if err != nil {
 		println(err.Error())
 		c.Response().WriteHeader(http.StatusBadRequest)
 		return err
 	}
-	return render(c, http.StatusOK, editor("java", strings.Join(javaFiles, "\n\n"), ""))
+	java := strings.Join(javaFiles, "\n")
+	lr := strings.Count(kotlin, "\n") / strings.Count(java, "\n")
+	cr := len(kotlin) / len(java)
+	server.sb.Register("user", CompressionRaio{line: lr, character: cr})
+	return render(c, http.StatusOK, editor("java", java, ""))
 }
 
 func (server *Server) scoreboardHandler(c echo.Context) error {
 	c.Response().Header().Set(echo.HeaderContentType, "text/event-stream")
 	c.Response().Header().Set(echo.HeaderCacheControl, "no-cache")
 	c.Response().Header().Set("Connection", "keep-alive")
+	sb := server.sb.Get()
 	for i := 1; i <= 10; i++ {
-		fmt.Fprintf(c.Response().Writer, "event: ScoreboardUpdate\ndata: <div>hello world #%d<div>\n\n", i)
+		var buf bytes.Buffer
+		if err := scoreboard(sb).Render(c.Request().Context(), &buf); err != nil {
+			return err
+		}
+		fmt.Fprintf(c.Response().Writer, "event: ScoreboardUpdate\ndata: %s\n\n", buf.String())
 		c.Response().Flush()
 		time.Sleep(1 * time.Second)
 	}

@@ -1,9 +1,11 @@
 package main
 
-templ scoreboard(entries map[string]string) {
-    <ol>
-       for k, v := range entries {
-           <li>{k} Has reached {v}</li>
-        }
-    </ol>
+import "fmt"
+
+templ scoreboard(data ScoreboardData) {
+	<ol>
+		for k, v := range data {
+			<li>{ k }: lines: { fmt.Sprint(v.line) } chars: { fmt.Sprint(v.character) }</li>
+		}
+	</ol>
 }
