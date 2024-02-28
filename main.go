@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -10,7 +11,11 @@ import (
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
-	server := NewServer(ctx)
+	var kotlinBin, jdBin string
+	flag.StringVar(&kotlinBin, "kotlin-bin", "kotlin", "path to the kotlin bin")
+	flag.StringVar(&jdBin, "jd-bin", "jd-cli", "path to the jd-cli bin")
+	flag.Parse()
+	server := NewServer(ctx, NewCompileKotlinWorker(kotlinBin, jdBin))
 	server.Start()
 
 	sigs := make(chan os.Signal, 1)

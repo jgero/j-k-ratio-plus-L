@@ -6,26 +6,36 @@ import (
 	"path/filepath"
 )
 
-const IN_FILE_NAME = "in.kt"
-const KOTLIN_BIN = "kotlinc"
-const JD_BIN = "jd-cli"
+func NewCompileKotlinWorker(kotlinBin string, jdBin string) *CompileKotlinWorker {
+	return &CompileKotlinWorker{
+		inFile:    "in.kt",
+		kotlinBin: kotlinBin,
+		jdBin:     jdBin,
+	}
+}
 
-func compileKotlin(kotlin string) (javaFiles []string, err error) {
+type CompileKotlinWorker struct {
+	inFile    string
+	kotlinBin string
+	jdBin     string
+}
+
+func (w *CompileKotlinWorker) compute(kotlin string) (javaFiles []string, err error) {
 	dir, err := os.MkdirTemp("", "j-k-ratio-compile-work-d")
 	defer os.RemoveAll(dir)
 	if err != nil {
 		return nil, err
 	}
-	kotlinFilePath := filepath.Join(dir, IN_FILE_NAME)
+	kotlinFilePath := filepath.Join(dir, w.inFile)
 	err = os.WriteFile(kotlinFilePath, []byte(kotlin), 0644)
 	if err != nil {
 		return nil, err
 	}
-	err = exec.Command(KOTLIN_BIN, kotlinFilePath, "-d", dir).Run()
+	err = exec.Command(w.kotlinBin, kotlinFilePath, "-d", dir).Run()
 	if err != nil {
 		return nil, err
 	}
-	err = exec.Command(JD_BIN, "-od", dir, dir).Run()
+	err = exec.Command(w.jdBin, "-od", dir, dir).Run()
 	if err != nil {
 		return nil, err
 	}

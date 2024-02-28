@@ -17,8 +17,12 @@ script startEditor(language string, defaultValue string, syncElId string) {
   });
 }
 
+css editorBox() {
+	flex: 1;
+}
+
 templ editor(language string, defaultValue string, syncElId string) {
-    <div id={"editor-" + language} class="flex-1">
-        @startEditor(language, defaultValue, syncElId)
-    </div>
+	<div id={ "editor-" + language } class={ editorBox() }>
+		@startEditor(language, defaultValue, syncElId)
+	</div>
 }

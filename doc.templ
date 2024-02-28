@@ -4,39 +4,101 @@ const INITIAL_CODE = `fun main() {
     println("Hello world!")
 }`
 
+css body() {
+	color: white;
+	padding: 1.5rem;
+	gap: 1.5rem;
+	background-color: rgb(2 44 34);
+	display: flex;
+	height: 100vh;
+}
+
+css bodyItem() {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	padding: 1.5rem;
+	gap: 1.5rem;
+	background-color: #1e1e1e;
+	border-radius: 0.5rem;
+}
+
+css headerBox() {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	height: 4rem;
+}
+
+css heading() {
+	font-size: 1.5rem;
+	line-height: 2rem;
+	font-weight: 700;
+}
+
+css button() {
+	font-weight: 700;
+	padding: 0.5rem;
+	border: 4px solid white;
+	border-radius: 0.4rem;
+	text-transform: none;
+	margin: 0;
+	transition: all 0.2s ease-out;
+	background: transparent;
+	color: white;
+}
+
 templ doc() {
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <title>Hello world</title>
-        <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <link rel="stylesheet" href="./css/style.css"/>
-        <script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js"></script>
-        <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/sse.js"></script>
-        <script src="https://unpkg.com/monaco-editor@0.46.0/min/vs/loader.js"></script>
-    </head>
-    <body class="h-screen flex p-6 gap-6 font-mono bg-emerald-950">
-        <form hx-post="/compile" hx-indicator=".loading-indicator" hx-swap="outerHTML" hx-target="#editor-java" id="kotlinForm" class="flex flex-col flex-1 p-6 bg-[#1e1e1e] text-white rounded-lg gap-6">
-          <div class="block flex justify-between items-center">
-            <h2 class="text-2xl font-bold">Kotlin</h2>
-            <span class="relative inline-flex">
-            <button type="submit" class="border-white border-solid border-4 font-bold rounded-md p-2 hover:bg-white hover:text-black transition-colors cursor-pointer">Compile</button>
-            <span class="absolute flex h-3 w-3 top-0 right-0 -mt-1 -mr-1 loading-indicator htmx-indicator">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-            </span>
-            </span>
-          </div>
-          @editor("kotlin", INITIAL_CODE, "kotlin-shadow")
-          <input id="kotlin-shadow" type="hidden" name="code" value={INITIAL_CODE}/>
-        </form>
-          <div class="flex flex-col flex-1 p-6 bg-[#1e1e1e] text-white rounded-lg gap-6">
-            <h2 class="text-2xl font-bold">Java</h2>
-            <div id="editor-java" class="flex-1">
-                <div hx-ext="sse" sse-connect="/scoreboard" sse-swap="ScoreboardUpdate">placeholder</div>
-            </div>
-          </div>
-    </body>
-</html>
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<title>Hello world</title>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<script src="https://unpkg.com/htmx.org@1.9.10/dist/htmx.min.js"></script>
+			<script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/sse.js"></script>
+			<script src="https://unpkg.com/monaco-editor@0.46.0/min/vs/loader.js"></script>
+			<style type="text/css">
+            * {
+            box-sizing: border-box;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            }
+            body {
+            margin: 0;
+            padding: 0;
+            }
+        .loading-indicator {
+        fill: white;
+        }
+        button:hover {
+            background-color: white;
+            color: black;
+        }
+	</style>
+		</head>
+		<body class={ body() }>
+			<form hx-post="/compile" hx-indicator=".loading-indicator" hx-swap="outerHTML" hx-target="#editor-java" id="kotlinForm" class={ bodyItem() }>
+				<div class={ headerBox() }>
+					<h2 class={ heading() }>Kotlin</h2>
+					<span class="loading-indicator htmx-indicator">
+						<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+							<style>.spinner_hzlK{animation:spinner_vc4H .8s linear infinite;animation-delay:-.8s}.spinner_koGT{animation-delay:-.65s}.spinner_YF1u{animation-delay:-.5s}@keyframes spinner_vc4H{0%{y:1px;height:22px}93.75%{y:5px;height:14px;opacity:.2}}</style>
+							<rect class="spinner_hzlK" x="1" y="1" width="6" height="22"></rect><rect class="spinner_hzlK spinner_koGT" x="9" y="1" width="6" height="22"></rect><rect class="spinner_hzlK spinner_YF1u" x="17" y="1" width="6" height="22"></rect>
+						</svg>
+					</span>
+					<button type="submit" class={ button() }>
+						Compile
+					</button>
+				</div>
+				@editor("kotlin", INITIAL_CODE, "kotlin-shadow")
+				<input id="kotlin-shadow" type="hidden" name="code" value={ INITIAL_CODE }/>
+			</form>
+			<div class={ bodyItem() }>
+				<div class={ headerBox() }><h2 class={ heading() }>Java</h2></div>
+				<div id="editor-java" class={ bodyItem() }>
+					//<div hx-ext="sse" sse-connect="/scoreboard" sse-swap="ScoreboardUpdate">placeholder</div>
+				</div>
+			</div>
+		</body>
+	</html>
 }

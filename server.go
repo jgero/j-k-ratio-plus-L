@@ -17,13 +17,15 @@ type Server struct {
 	ctx context.Context
 	app *echo.Echo
 	sb  Scoreboard
+	ckw *CompileKotlinWorker
 }
 
-func NewServer(ctx context.Context) (server *Server) {
+func NewServer(ctx context.Context, ckw *CompileKotlinWorker) (server *Server) {
 	server = &Server{
 		app: echo.New(),
 		ctx: ctx,
 		sb:  NewScoreboard(),
+		ckw: ckw,
 	}
 	server.app.GET("/", server.homeHandler)
 	server.app.POST("/compile", server.compileKotlinHandler)
@@ -57,7 +59,7 @@ func (server *Server) homeHandler(c echo.Context) error {
 
 func (server *Server) compileKotlinHandler(c echo.Context) error {
 	kotlin := c.FormValue("code")
-	javaFiles, err := compileKotlin(kotlin)
+	javaFiles, err := server.ckw.compute(kotlin)
 	if err != nil {
 		println(err.Error())
 		c.Response().WriteHeader(http.StatusBadRequest)
