@@ -16,7 +16,7 @@ import (
 type Server struct {
 	ctx context.Context
 	app *echo.Echo
-	sb  Scoreboard
+	sb  *Scoreboard
 	ckw *CompileKotlinWorker
 }
 
@@ -24,7 +24,7 @@ func NewServer(ctx context.Context, ckw *CompileKotlinWorker) (server *Server) {
 	server = &Server{
 		app: echo.New(),
 		ctx: ctx,
-		sb:  NewScoreboard(),
+		sb:  NewScoreboard(ctx),
 		ckw: ckw,
 	}
 	server.app.GET("/", server.homeHandler)
@@ -66,8 +66,8 @@ func (server *Server) compileKotlinHandler(c echo.Context) error {
 		return err
 	}
 	java := strings.Join(javaFiles, "\n")
-	lr := strings.Count(kotlin, "\n") / strings.Count(java, "\n")
-	cr := len(kotlin) / len(java)
+	lr := (strings.Count(java, "\n") + 1) / (strings.Count(kotlin, "\n") + 1)
+	cr := len(java) / len(kotlin)
 	server.sb.Register("user", CompressionRaio{line: lr, character: cr})
 	return render(c, http.StatusOK, editor("java", java, ""))
 }
@@ -76,20 +76,30 @@ func (server *Server) scoreboardHandler(c echo.Context) error {
 	c.Response().Header().Set(echo.HeaderContentType, "text/event-stream")
 	c.Response().Header().Set(echo.HeaderCacheControl, "no-cache")
 	c.Response().Header().Set("Connection", "keep-alive")
-	sb := server.sb.Get()
-	for i := 1; i <= 10; i++ {
-		var buf bytes.Buffer
-		if err := scoreboard(sb).Render(c.Request().Context(), &buf); err != nil {
-			return err
+	var data ScoreboardData
+	var buf bytes.Buffer
+	data = server.sb.Get()
+	writeResponse(data, c, buf)
+	receiver := make(chan ScoreboardData)
+	server.sb.Subscribe(receiver)
+	for {
+		select {
+		case data = <-receiver:
+			writeResponse(data, c, buf)
+		case <-c.Request().Context().Done():
+			server.sb.Unsubscribe(receiver)
+			return nil
 		}
-		fmt.Fprintf(c.Response().Writer, "event: ScoreboardUpdate\ndata: %s\n\n", buf.String())
-		c.Response().Flush()
-		time.Sleep(1 * time.Second)
 	}
-	select {
-	case <-c.Request().Context().Done():
-		return nil
+}
+
+func writeResponse(data ScoreboardData, c echo.Context, buf bytes.Buffer) error {
+	if err := scoreboard(data).Render(c.Request().Context(), &buf); err != nil {
+		return err
 	}
+	fmt.Fprintf(c.Response().Writer, "event: ScoreboardUpdate\ndata: %s\n\n", buf.String())
+	c.Response().Flush()
+	return nil
 }
 
 func render(ctx echo.Context, statusCode int, t templ.Component) error {

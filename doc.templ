@@ -95,10 +95,9 @@ templ doc() {
 			</form>
 			<div class={ bodyItem() }>
 				<div class={ headerBox() }><h2 class={ heading() }>Java</h2></div>
-				<div id="editor-java" class={ bodyItem() }>
-					//<div hx-ext="sse" sse-connect="/scoreboard" sse-swap="ScoreboardUpdate">placeholder</div>
-				</div>
+				<div id="editor-java" class={ bodyItem() }></div>
 			</div>
+			<div hx-ext="sse" sse-connect="/scoreboard" sse-swap="ScoreboardUpdate">placeholder</div>
 		</body>
 	</html>
 }
