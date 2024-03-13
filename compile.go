@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -31,7 +32,7 @@ func (w *CompileKotlinWorker) compute(kotlin string) (javaFiles []string, err er
 	if err != nil {
 		return nil, err
 	}
-	err = exec.Command(w.kotlinBin, kotlinFilePath, "-d", dir).Run()
+	out, err := exec.Command(w.kotlinBin, "-Xcontext-receivers", kotlinFilePath, "-d", dir).CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("%s:\n%s", err, out)
 	}
