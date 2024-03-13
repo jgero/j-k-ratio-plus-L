@@ -61,9 +61,7 @@ func (server *Server) compileKotlinHandler(c echo.Context) error {
 	kotlin := c.FormValue("code")
 	javaFiles, err := server.ckw.compute(kotlin)
 	if err != nil {
-		println(err.Error())
-		c.Response().WriteHeader(http.StatusBadRequest)
-		return err
+		return render(c, http.StatusOK, errorDisplay(err))
 	}
 	java := strings.Join(javaFiles, "\n")
 	lr := (strings.Count(java, "\n") + 1) / (strings.Count(kotlin, "\n") + 1)

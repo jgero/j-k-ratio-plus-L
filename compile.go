@@ -33,7 +33,7 @@ func (w *CompileKotlinWorker) compute(kotlin string) (javaFiles []string, err er
 	}
 	err = exec.Command(w.kotlinBin, kotlinFilePath, "-d", dir).Run()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s:\n%s", err, out)
 	}
 	err = exec.Command(w.jdBin, "-od", dir, dir).Run()
 	if err != nil {
