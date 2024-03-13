@@ -10,6 +10,7 @@ script startEditor(language string, defaultValue string, syncElId string) {
       theme: 'vs-dark',
     });
     if (syncElId != "") {
+        document.getElementById(syncElId).value = editor.getValue();
         editor.onDidChangeModelContent(function() {
            document.getElementById(syncElId).value = editor.getValue();
         });
