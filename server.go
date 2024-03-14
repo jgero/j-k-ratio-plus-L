@@ -61,7 +61,9 @@ func (server *Server) compileKotlinHandler(c echo.Context) error {
 	kotlin := c.FormValue("code")
 	javaFiles, err := server.ckw.compute(kotlin)
 	if err != nil {
-		return render(c, http.StatusOK, errorDisplay(err))
+		c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTML)
+		_, wErr := c.Response().Write([]byte(fmt.Sprintf("<div id=\"editor-java\"><pre>%s</pre></div>", err)))
+		return wErr
 	}
 	java := strings.Join(javaFiles, "\n")
 	lr := (strings.Count(java, "\n") + 1) / (strings.Count(kotlin, "\n") + 1)
