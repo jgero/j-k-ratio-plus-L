@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"slices"
+	"sort"
 	"sync"
 )
 
 type CompressionRaio struct {
+	user      string
 	line      int
 	character int
 }
@@ -13,7 +16,7 @@ type CompressionRaio struct {
 func NewScoreboard(ctx context.Context) *Scoreboard {
 	sb := &Scoreboard{
 		lock:       sync.RWMutex{},
-		data:       make(map[string]CompressionRaio),
+		data:       make([]CompressionRaio, 0),
 		addSubs:    make(chan chan<- ScoreboardData),
 		removeSubs: make(chan chan<- ScoreboardData),
 		notify:     make(chan struct{}, 10),
@@ -22,7 +25,7 @@ func NewScoreboard(ctx context.Context) *Scoreboard {
 	return sb
 }
 
-type ScoreboardData = map[string]CompressionRaio
+type ScoreboardData = []CompressionRaio
 
 type Scoreboard struct {
 	lock       sync.RWMutex
@@ -66,12 +69,22 @@ func (sb *Scoreboard) Run(ctx context.Context) {
 func (sb *Scoreboard) Register(user string, newRatio CompressionRaio) (changed bool) {
 	sb.lock.Lock()
 	defer sb.lock.Unlock()
-	d, ok := sb.data[user]
+	idx := slices.IndexFunc(sb.data, func(d CompressionRaio) bool { return d.user == user })
+	ok := idx >= 0
+	var d CompressionRaio
+	if ok {
+		d = sb.data[idx]
+	}
 	changed = !ok || d.line < newRatio.line || (d.line == newRatio.line && d.character < newRatio.character)
 	if changed {
 		sb.notify <- struct{}{}
-		sb.data[user] = newRatio
+		if ok {
+			sb.data[idx] = newRatio
+		} else {
+			sb.data = append(sb.data, newRatio)
+		}
 	}
+	sort.Slice(sb.data, func(i, j int) bool { return sb.data[i].line > sb.data[j].line })
 	return
 }
 

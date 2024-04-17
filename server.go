@@ -69,7 +69,7 @@ func (server *Server) compileKotlinHandler(c echo.Context) error {
 	java := strings.Join(javaFiles, "\n")
 	lr := (strings.Count(java, "\n") + 1) / (strings.Count(kotlin, "\n") + 1)
 	cr := len(java) / len(kotlin)
-	server.sb.Register(user, CompressionRaio{line: lr, character: cr})
+	server.sb.Register(user, CompressionRaio{user: user, line: lr, character: cr})
 	return render(c, http.StatusOK, editor("java", java, ""))
 }
 

@@ -19,8 +19,8 @@ css sheet() {
 
 templ scoreboard(data ScoreboardData) {
 	<ol class={ sheet() }>
-		for k, v := range data {
-			<li>{ k }: lines: { fmt.Sprint(v.line) } chars: { fmt.Sprint(v.character) }</li>
+		for _, v := range data {
+			<li>{ v.user }: lines: { fmt.Sprint(v.line) } chars: { fmt.Sprint(v.character) }</li>
 		}
 	</ol>
 }
