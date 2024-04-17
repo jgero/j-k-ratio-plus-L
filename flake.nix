@@ -7,13 +7,17 @@
       url = "github:a-h/templ/v0.2.543";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    devenv = {
+      url = "github:cachix/devenv";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     treefmt-nix = {
       url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { self, nixpkgs, templ, treefmt-nix, ... }:
+  outputs = { self, nixpkgs, templ, devenv, treefmt-nix, ... } @ inputs:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
@@ -36,6 +40,7 @@
       formatter.${system} = treefmtEval.config.build.wrapper;
       checks.${system}.formatter = treefmtEval.config.build.check self;
       packages.${system} = rec {
+        devenv-up = self.devShells.${system}.default.config.procfileScript;
         goMod = pkgs.buildGoModule {
           pname = "j-k-ratio-plus-L";
           version = "2.0";
@@ -44,21 +49,33 @@
           src = ./.;
           nativeBuildInputs = [ templ-bin ];
           preBuild = ''
-            templ generate hello.templ
+            templ generate
           '';
         };
         default = pkgs.writeScriptBin "wrapped-mod" ''
           ${goMod}/bin/${goMod.pname} -kotlin-bin ${pkgs.kotlin}/bin/kotlinc -jd-bin ${pkgs.jd-cli}/bin/jd-cli
         '';
       };
-      devShells.${system}.default = pkgs.mkShell {
-        packages = with pkgs; [
-          go
-          gopls
-          templ-bin
-          kotlin
-          jd-cli
-          nodejs
+      devShells.${system}.default = devenv.lib.mkShell {
+        inherit inputs pkgs;
+        modules = [
+          {
+            languages.go.enable = true;
+            packages = with pkgs; [
+              reflex
+              templ-bin
+              kotlin
+              jd-cli
+              nodejs
+            ];
+
+            env.KOTLIN_BIN = "${pkgs.kotlin}/bin/kotlinc";
+            env.JD_BIN = "${pkgs.jd-cli}/bin/jd-cli";
+
+            scripts.dev-server.exec = ''
+              reflex -R '_templ.go$' -s -- sh -c 'templ generate && go run .'
+            '';
+          }
         ];
       };
     };

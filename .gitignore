@@ -1,5 +1,6 @@
 result
 css/
+.devenv
 
 *_templ.go
 *.kt
