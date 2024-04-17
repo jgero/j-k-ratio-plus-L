@@ -49,6 +49,16 @@ css button() {
 	color: white;
 }
 
+css usernameInput() {
+	outline: none;
+	border: none;
+	border-bottom: 3px solid rgb(2 44 34);
+	background: transparent;
+	color: white;
+	padding-inline-start: 0.5rem;
+	width: 7rem;
+}
+
 templ doc() {
 	<!DOCTYPE html>
 	<html lang="en">
@@ -87,9 +97,12 @@ templ doc() {
 							<rect class="spinner_hzlK" x="1" y="1" width="6" height="22"></rect><rect class="spinner_hzlK spinner_koGT" x="9" y="1" width="6" height="22"></rect><rect class="spinner_hzlK spinner_YF1u" x="17" y="1" width="6" height="22"></rect>
 						</svg>
 					</span>
-					<button type="submit" class={ button() }>
-						Compile
-					</button>
+					<div>
+						<input name="user" value="unnamed-user" class={ usernameInput() }/>
+						<button type="submit" class={ button() }>
+							Compile
+						</button>
+					</div>
 				</div>
 				@editor("kotlin", INITIAL_CODE, "kotlin-shadow")
 				<input id="kotlin-shadow" type="hidden" name="code" value={ INITIAL_CODE }/>

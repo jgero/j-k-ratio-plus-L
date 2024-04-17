@@ -2,8 +2,23 @@ package main
 
 import "fmt"
 
+css sheet() {
+	position: fixed;
+	width: 40vw;
+	left: 30vw;
+	bottom: 0;
+	height: 20vh;
+	border: 3px solid rgb(2 44 34);
+	background-color: #1e1e1e;
+	z-index: 100;
+	margin: 0;
+	border-top-left-radius: 0.5rem;
+	border-top-right-radius: 0.5rem;
+	padding-block-start: 1rem;
+}
+
 templ scoreboard(data ScoreboardData) {
-	<ol>
+	<ol class={ sheet() }>
 		for k, v := range data {
 			<li>{ k }: lines: { fmt.Sprint(v.line) } chars: { fmt.Sprint(v.character) }</li>
 		}

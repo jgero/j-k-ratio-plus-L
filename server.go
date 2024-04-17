@@ -59,6 +59,7 @@ func (server *Server) homeHandler(c echo.Context) error {
 
 func (server *Server) compileKotlinHandler(c echo.Context) error {
 	kotlin := c.FormValue("code")
+	user := c.FormValue("user")
 	javaFiles, err := server.ckw.compute(kotlin)
 	if err != nil {
 		c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTML)
@@ -68,7 +69,7 @@ func (server *Server) compileKotlinHandler(c echo.Context) error {
 	java := strings.Join(javaFiles, "\n")
 	lr := (strings.Count(java, "\n") + 1) / (strings.Count(kotlin, "\n") + 1)
 	cr := len(java) / len(kotlin)
-	server.sb.Register("user", CompressionRaio{line: lr, character: cr})
+	server.sb.Register(user, CompressionRaio{line: lr, character: cr})
 	return render(c, http.StatusOK, editor("java", java, ""))
 }
 
