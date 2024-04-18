@@ -3,39 +3,43 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
+    templ = {
+      url = "github:a-h/templ/v0.2.543";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    devenv = {
+      url = "github:cachix/devenv";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { nixpkgs, rust-overlay, ... }:
-      let
-        overlays = [ (import rust-overlay) ];
-        system = "x86_64-linux";
-        pkgs = import nixpkgs { inherit overlays system; };
-        rustVersion = pkgs.rust-bin.stable.latest.default;
-        rustPlatform = pkgs.makeRustPlatform {
-          cargo = rustVersion;
-          rustc = rustVersion;
-        };
-        myRustBuild = rustPlatform.buildRustPackage {
-          pname =
-            "j-k-ratio-plus-L";
-          version = "0.1.0";
+  outputs = { self, nixpkgs, templ, devenv, treefmt-nix, ... } @ inputs:
+    let
+      system = "x86_64-linux";
+      pkgs = import nixpkgs { inherit system; };
+      templ-bin = templ.packages.${system}.templ;
+      treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
+    in
+    {
+      formatter.${system} = treefmtEval.config.build.wrapper;
+      checks.${system}.formatter = treefmtEval.config.build.check self;
+      packages.${system} = rec {
+        goMod = pkgs.buildGoModule {
+          pname = "j-k-ratio-plus-L";
+          version = "2.0";
+          # vendorHash = nixpkgs.lib.fakeHash;
+          vendorHash = "sha256-FeGap2zXQCIFG894mUOHMDVLR34B84qfXZEGAF4ayjw=";
           src = ./.;
-          cargoLock.lockFile = ./Cargo.lock;
-        };
-        staticHtml = pkgs.buildNpmPackage {
-          name = "monaco-editor-frontend";
-          src = ./.;
-          npmDepsHash = "sha256-d5BSZ2yOQhOuSTkvOuWxiscvXHJnXjC+52tYxiyDl1Y=";
-          installPhase = ''
-            mkdir -p $out
-            mv build $out
+          nativeBuildInputs = [ templ-bin ];
+          preBuild = ''
+            templ generate
           '';
         };
-        containerImage = pkgs.dockerTools.buildLayeredImage {
+        container = pkgs.dockerTools.buildLayeredImage {
           name = "ghcr.io/jgero/j-k-ratio-plus-uppercase-l";
           tag = "latest";
           contents = with pkgs; [
@@ -44,25 +48,36 @@
             jd-cli
           ];
           maxLayers = 10;
-          config = { Cmd = [ "${myRustBuild}/bin/j-k-ratio-plus-L" "--production" "--static-path=${staticHtml}/build" ]; };
+          config = {
+            Cmd = [ "${goMod}/bin/${goMod.pname}" ];
+            Env = [ "KOTLIN_BIN=${pkgs.kotlin}/bin/kotlinc" "JD_BIN=${pkgs.jd-cli}/bin/jd-cli" ];
+          };
         };
-      in
-      {
-        packages.${system} = {
-          rustPackage = myRustBuild;
-          container = containerImage;
-          frontend = staticHtml;
-        };
-        defaultPackage = myRustBuild;
-        devShell = pkgs.mkShell {
-          packages = with pkgs; [
-            cargo
-            kotlin
-            jd-cli
-            nodejs
-          ];
-          buildInputs =
-            [ (rustVersion.override { extensions = [ "rust-src" ]; }) ];
-        };
+        default = pkgs.writeScriptBin "wrapped-mod" ''
+          KOTLIN_BIN="${pkgs.kotlin}/bin/kotlinc" JD_BIN="${pkgs.jd-cli}/bin/jd-cli" ${goMod}/bin/${goMod.pname}
+        '';
       };
+      devShells.${system}.default = devenv.lib.mkShell {
+        inherit inputs pkgs;
+        modules = [
+          {
+            languages.go.enable = true;
+            packages = with pkgs; [
+              reflex
+              templ-bin
+              kotlin
+              jd-cli
+              nodejs
+            ];
+
+            env.KOTLIN_BIN = "${pkgs.kotlin}/bin/kotlinc";
+            env.JD_BIN = "${pkgs.jd-cli}/bin/jd-cli";
+
+            scripts.dev-server.exec = ''
+              reflex -R '_templ.go$' -s -- sh -c 'templ generate && go run .'
+            '';
+          }
+        ];
+      };
+    };
 }

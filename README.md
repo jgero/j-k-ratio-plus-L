@@ -12,17 +12,11 @@ compare the character count.
 
 ## Develop
 
-The nix develop shell has all necessary tools installed. Start the Rust server
-in it with `cargo run` or the svelte dev server with `npm run dev`.
+The nix develop shell has all necessary tools installed. Start the Golang dev
+server in it with `dev-server`.
 
-## Use
+## Container
 
-You can either use the API directly, or via the HTML frontend. It has a nice
-editor and visualizations.
-
-```bash
-curl -X POST -H "Content-Type: application/json" \
-  -d '{"src": "fun main() { print(\"hello world\") }"}' \
-  http://localhost:8080/compile
-```
+The container listens on port 4000. You need to mount a temp directory to
+"/tmp", the container does not have that by default.
 
