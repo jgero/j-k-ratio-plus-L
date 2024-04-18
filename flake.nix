@@ -21,26 +21,13 @@
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
-      lib = nixpkgs.lib;
       templ-bin = templ.packages.${system}.templ;
       treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
-      # containerImage = pkgs.dockerTools.buildLayeredImage {
-      #   name = "ghcr.io/jgero/j-k-ratio-plus-uppercase-l";
-      #   tag = "latest";
-      #   contents = with pkgs; [
-      #     kotlin
-      #     coreutils
-      #     jd-cli
-      #   ];
-      #   maxLayers = 10;
-      #   # config = { Cmd = [ "${myRustBuild}/bin/j-k-ratio-plus-L" "--production" "--static-path=${staticHtml}/build" ]; };
-      # };
     in
     {
       formatter.${system} = treefmtEval.config.build.wrapper;
       checks.${system}.formatter = treefmtEval.config.build.check self;
       packages.${system} = rec {
-        devenv-up = self.devShells.${system}.default.config.procfileScript;
         goMod = pkgs.buildGoModule {
           pname = "j-k-ratio-plus-L";
           version = "2.0";
@@ -52,8 +39,22 @@
             templ generate
           '';
         };
+        container = pkgs.dockerTools.buildLayeredImage {
+          name = "ghcr.io/jgero/j-k-ratio-plus-uppercase-l";
+          tag = "latest";
+          contents = with pkgs; [
+            kotlin
+            coreutils
+            jd-cli
+          ];
+          maxLayers = 10;
+          config = {
+            Cmd = [ "${goMod}/bin/${goMod.pname}" ];
+            Env = [ "KOTLIN_BIN=${pkgs.kotlin}/bin/kotlinc" "JD_BIN=${pkgs.jd-cli}/bin/jd-cli" ];
+          };
+        };
         default = pkgs.writeScriptBin "wrapped-mod" ''
-          ${goMod}/bin/${goMod.pname} -kotlin-bin ${pkgs.kotlin}/bin/kotlinc -jd-bin ${pkgs.jd-cli}/bin/jd-cli
+          KOTLIN_BIN="${pkgs.kotlin}/bin/kotlinc" JD_BIN="${pkgs.jd-cli}/bin/jd-cli" ${goMod}/bin/${goMod.pname}
         '';
       };
       devShells.${system}.default = devenv.lib.mkShell {
